@@ -77,7 +77,7 @@ data IState = IState {
     idris_statics :: Ctxt [Bool],
     idris_classes :: Ctxt ClassInfo,
     idris_dsls :: Ctxt DSL,
-    idris_optimisation :: Ctxt OptInfo, 
+    idris_optimisation :: Ctxt OptInfo,
     idris_datatypes :: Ctxt TypeInfo,
     idris_patdefs :: Ctxt ([([Name], Term, Term)], [PTerm]), -- not exported
       -- ^ list of lhs/rhs, and a list of missing clauses
@@ -127,12 +127,12 @@ data CGInfo = CGInfo { argsdef :: [Name],
                        argsused :: [Name],
                        unusedpos :: [Int] }
     deriving Show
-{-! 
-deriving instance Binary CGInfo 
+{-!
+deriving instance Binary CGInfo
 !-}
 
 primDefs = [UN "unsafePerformIO", UN "mkLazyForeign", UN "mkForeign", UN "FalseElim"]
-             
+
 -- information that needs writing for the current module's .ibc file
 data IBCWrite = IBCFix FixDecl
               | IBCImp Name
@@ -159,12 +159,12 @@ data IBCWrite = IBCFix FixDecl
   deriving Show
 
 idrisInit = IState initContext [] [] emptyContext emptyContext emptyContext
-                   emptyContext emptyContext emptyContext emptyContext 
+                   emptyContext emptyContext emptyContext emptyContext
                    emptyContext emptyContext emptyContext emptyContext
                    [] "" defaultOpts 6 [] [] [] [] [] [] [] [] []
                    [] Nothing Nothing [] [] [] Hidden False [] Nothing [] [] RawOutput
 
--- | The monad for the main REPL - reading and processing files and updating 
+-- | The monad for the main REPL - reading and processing files and updating
 -- global state (hence the IO inner monad).
 --type Idris = WriterT [Either String (IO ())] (State IState a))
 type Idris = StateT IState IO
@@ -186,9 +186,9 @@ data Command = Quit
              | DocStr Name
              | TotCheck Name
              | Reload
-             | Load FilePath 
+             | Load FilePath
              | ChangeDirectory FilePath
-             | ModImport String 
+             | ModImport String
              | Edit
              | Compile Target String
              | Execute
@@ -235,8 +235,8 @@ data Opt = Filename String
          | DefaultTotal
          | DefaultPartial
          | WarnPartial
-         | NoCoverage 
-         | ErrContext 
+         | NoCoverage
+         | ErrContext
          | ShowImpl
          | Verbose
          | IBCSubDir String
@@ -257,13 +257,13 @@ data Opt = Filename String
 
 -- Parsed declarations
 
-data Fixity = Infixl { prec :: Int } 
+data Fixity = Infixl { prec :: Int }
             | Infixr { prec :: Int }
-            | InfixN { prec :: Int } 
+            | InfixN { prec :: Int }
             | PrefixN { prec :: Int }
     deriving Eq
-{-! 
-deriving instance Binary Fixity 
+{-!
+deriving instance Binary Fixity
 !-}
 
 instance Show Fixity where
@@ -272,14 +272,14 @@ instance Show Fixity where
     show (InfixN i) = "infix " ++ show i
     show (PrefixN i) = "prefix " ++ show i
 
-data FixDecl = Fix Fixity String 
+data FixDecl = Fix Fixity String
     deriving Eq
 
 instance Show FixDecl where
   show (Fix f s) = show f ++ " " ++ s
 
-{-! 
-deriving instance Binary FixDecl 
+{-!
+deriving instance Binary FixDecl
 !-}
 
 instance Ord FixDecl where
@@ -288,8 +288,8 @@ instance Ord FixDecl where
 
 data Static = Static | Dynamic
   deriving (Show, Eq)
-{-! 
-deriving instance Binary Static 
+{-!
+deriving instance Binary Static
 !-}
 
 -- Mark bindings with their explicitness, and laziness
@@ -309,7 +309,7 @@ data Plicity = Imp { plazy :: Bool,
   deriving (Show, Eq)
 
 {-!
-deriving instance Binary Plicity 
+deriving instance Binary Plicity
 !-}
 
 impl = Imp False Dynamic ""
@@ -344,7 +344,7 @@ data PDecl' t
    | PParams  FC [(Name, t)] [PDecl' t] -- ^ Params block
    | PNamespace String [PDecl' t] -- ^ New namespace
    | PRecord  String SyntaxInfo FC Name t String Name t  -- ^ Record declaration
-   | PClass   String SyntaxInfo FC 
+   | PClass   String SyntaxInfo FC
               [t] -- constraints
               Name
               [(Name, t)] -- parameters
@@ -405,7 +405,7 @@ deriving instance Binary PData'
 
 type PDecl   = PDecl' PTerm
 type PData   = PData' PTerm
-type PClause = PClause' PTerm 
+type PClause = PClause' PTerm
 
 -- get all the names declared in a decl
 
@@ -437,7 +437,7 @@ tldeclared (PClauses _ _ n _) = [] -- not a declaration
 tldeclared (PRecord _ _ _ n _ _ c _) = [n, c]
 tldeclared (PData _ _ _ _ (PDatadecl n _ ts)) = n : map fstt ts
    where fstt (_, a, _, _) = a
-tldeclared (PParams _ _ ds) = [] 
+tldeclared (PParams _ _ ds) = []
 tldeclared (PMutual _ ds) = concatMap tldeclared ds
 tldeclared (PNamespace _ ds) = concatMap tldeclared ds
 
@@ -469,14 +469,14 @@ updateN _  n = n
 updateNs :: [(Name, Name)] -> PTerm -> PTerm
 updateNs [] t = t
 updateNs ns t = mapPT updateRef t
-  where updateRef (PRef fc f) = PRef fc (updateN ns f) 
+  where updateRef (PRef fc f) = PRef fc (updateN ns f)
         updateRef t = t
 
 -- updateDNs :: [(Name, Name)] -> PDecl -> PDecl
 -- updateDNs [] t = t
 -- updateDNs ns (PTy s f n t)    | Just n' <- lookup n ns = PTy s f n' t
 -- updateDNs ns (PClauses f n c) | Just n' <- lookup n ns = PClauses f n' (map updateCNs c)
---   where updateCNs ns (PClause n l ts r ds) 
+--   where updateCNs ns (PClause n l ts r ds)
 --             = PClause (updateN ns n) (fmap (updateNs ns) l)
 --                                      (map (fmap (updateNs ns)) ts)
 --                                      (fmap (updateNs ns) r)
@@ -517,8 +517,8 @@ data PTerm = PQuote Raw
            | PImpossible -- ^ Special case for declaring when an LHS can't typecheck
            | PCoerced PTerm -- ^ To mark a coerced argument, so as not to coerce twice
     deriving Eq
-{-! 
-deriving instance Binary PTerm 
+{-!
+deriving instance Binary PTerm
 !-}
 
 mapPT :: (PTerm -> PTerm) -> PTerm -> PTerm
@@ -542,7 +542,7 @@ mapPT f t = f (mpt t) where
 
 
 data PTactic' t = Intro [Name] | Intros | Focus Name
-                | Refine Name [Bool] | Rewrite t 
+                | Refine Name [Bool] | Rewrite t
                 | LetTac Name t | LetTacTy Name t t
                 | Exact t | Compute | Trivial
                 | Solve
@@ -556,8 +556,8 @@ data PTactic' t = Intro [Name] | Intros | Focus Name
                 | GoalType String (PTactic' t)
                 | Qed | Abandon
     deriving (Show, Eq, Functor)
-{-! 
-deriving instance Binary PTactic' 
+{-!
+deriving instance Binary PTactic'
 !-}
 
 instance Sized a => Sized (PTactic' a) where
@@ -591,8 +591,8 @@ data PDo' t = DoExp  FC t
             | DoLet  FC Name t t
             | DoLetP FC t t
     deriving (Eq, Functor)
-{-! 
-deriving instance Binary PDo' 
+{-!
+deriving instance Binary PDo'
 !-}
 
 instance Sized a => Sized (PDo' a) where
@@ -609,7 +609,7 @@ type PDo = PDo' PTerm
 -- variables, e.g. a before (interpTy a).
 -- TODO: priority no longer serves any purpose, drop it!
 
-data PArg' t = PImp { priority :: Int, 
+data PArg' t = PImp { priority :: Int,
                       lazyarg :: Bool, pname :: Name, getTm :: t,
                       pargdoc :: String }
              | PExp { priority :: Int,
@@ -619,9 +619,9 @@ data PArg' t = PImp { priority :: Int,
                              lazyarg :: Bool, getTm :: t,
                              pargdoc :: String }
              | PTacImplicit { priority :: Int,
-                              lazyarg :: Bool, pname :: Name, 
+                              lazyarg :: Bool, pname :: Name,
                               getScript :: t,
-                              getTm :: t, 
+                              getTm :: t,
                               pargdoc :: String }
     deriving (Show, Eq, Functor)
 
@@ -631,8 +631,8 @@ instance Sized a => Sized (PArg' a) where
   size (PConstraint p l trm _) = 1 + size trm
   size (PTacImplicit p l nm scr trm _) = 1 + size nm + size scr + size trm
 
-{-! 
-deriving instance Binary PArg' 
+{-!
+deriving instance Binary PArg'
 !-}
 
 pimp n t = PImp 0 True n t ""
@@ -650,20 +650,20 @@ data ClassInfo = CI { instanceName :: Name,
                       class_params :: [Name],
                       class_instances :: [Name] }
     deriving Show
-{-! 
-deriving instance Binary ClassInfo 
+{-!
+deriving instance Binary ClassInfo
 !-}
 
 data OptInfo = Optimise { collapsible :: Bool,
                           forceable :: [Int], -- argument positions
                           recursive :: [Int] }
     deriving Show
-{-! 
-deriving instance Binary OptInfo 
+{-!
+deriving instance Binary OptInfo
 !-}
 
 
-data TypeInfo = TI { con_names :: [Name], 
+data TypeInfo = TI { con_names :: [Name],
                      codata :: Bool,
                      param_pos :: [Int] }
     deriving Show
@@ -671,7 +671,7 @@ data TypeInfo = TI { con_names :: [Name],
 deriving instance Binary TypeInfo
 !-}
 
--- Syntactic sugar info 
+-- Syntactic sugar info
 
 data DSL' t = DSL { dsl_bind    :: t,
                     dsl_return  :: t,
@@ -692,14 +692,14 @@ type DSL = DSL' PTerm
 
 data SynContext = PatternSyntax | TermSyntax | AnySyntax
     deriving Show
-{-! 
-deriving instance Binary SynContext 
+{-!
+deriving instance Binary SynContext
 !-}
 
 data Syntax = Rule [SSymbol] PTerm SynContext
     deriving Show
-{-! 
-deriving instance Binary Syntax 
+{-!
+deriving instance Binary Syntax
 !-}
 
 data SSymbol = Keyword Name
@@ -708,11 +708,11 @@ data SSymbol = Keyword Name
              | Expr Name
              | SimpleExpr Name
     deriving Show
-{-! 
-deriving instance Binary SSymbol 
+{-!
+deriving instance Binary SSymbol
 !-}
 
-initDSL = DSL (PRef f (UN ">>=")) 
+initDSL = DSL (PRef f (UN ">>="))
               (PRef f (UN "return"))
               (PRef f (UN "<$>"))
               (PRef f (UN "pure"))
@@ -774,29 +774,29 @@ showDeclImp t (PTy _ _ _ _ n ty) = show n ++ " : " ++ showImp t ty
 showDeclImp t (PPostulate _ _ _ _ n ty) = show n ++ " : " ++ showImp t ty
 showDeclImp _ (PClauses _ _ n c) = showSep "\n" (map show c)
 showDeclImp _ (PData _ _ _ _ d) = show d
-showDeclImp _ (PParams f ns ps) = "parameters " ++ show ns ++ "\n" ++ 
+showDeclImp _ (PParams f ns ps) = "parameters " ++ show ns ++ "\n" ++
                                     showSep "\n" (map show ps)
 
 
 showCImp :: Bool -> PClause -> String
-showCImp impl (PClause _ n l ws r w) 
+showCImp impl (PClause _ n l ws r w)
    = showImp impl l ++ showWs ws ++ " = " ++ showImp impl r
-             ++ " where " ++ show w 
+             ++ " where " ++ show w
   where
     showWs [] = ""
     showWs (x : xs) = " | " ++ showImp impl x ++ showWs xs
-showCImp impl (PWith _ n l ws r w) 
+showCImp impl (PWith _ n l ws r w)
    = showImp impl l ++ showWs ws ++ " with " ++ showImp impl r
-             ++ " { " ++ show w ++ " } " 
+             ++ " { " ++ show w ++ " } "
   where
     showWs [] = ""
     showWs (x : xs) = " | " ++ showImp impl x ++ showWs xs
 
 
 showDImp :: Bool -> PData -> String
-showDImp impl (PDatadecl n ty cons) 
+showDImp impl (PDatadecl n ty cons)
    = "data " ++ show n ++ " : " ++ showImp impl ty ++ " where\n\t"
-     ++ showSep "\n\t| " 
+     ++ showSep "\n\t| "
             (map (\ (_, n, t, _) -> show n ++ " : " ++ showImp impl t) cons)
 
 getImps :: [PArg] -> [(Name, PTerm)]
@@ -815,7 +815,7 @@ getConsts (PConstraint _ _ tm _ : xs) = tm : getConsts xs
 getConsts (_ : xs) = getConsts xs
 
 getAll :: [PArg] -> [PTerm]
-getAll = map getTm 
+getAll = map getTm
 
 prettyImp :: Bool -> PTerm -> Doc
 prettyImp impl = prettySe 10
@@ -1003,7 +1003,7 @@ prettyImp impl = prettySe 10
     bracket outer inner doc
       | inner > outer = lparen <> doc <> rparen
       | otherwise     = doc
-        
+
 showImp :: Bool -> PTerm -> String
 showImp impl tm = se 10 tm where
     se p (PQuote r) = "![" ++ show r ++ "]"
@@ -1014,16 +1014,16 @@ showImp impl tm = se 10 tm where
       where showbasic n@(UN _) = show n
             showbasic (MN _ s) = s
             showbasic (NS n s) = showSep "." (reverse s) ++ "." ++ showbasic n
-    se p (PLam n ty sc) = bracket p 2 $ "\\ " ++ show n ++ 
-                            (if impl then " : " ++ se 10 ty else "") ++ " => " 
+    se p (PLam n ty sc) = bracket p 2 $ "\\ " ++ show n ++
+                            (if impl then " : " ++ se 10 ty else "") ++ " => "
                             ++ se 10 sc
     se p (PLet n ty v sc) = bracket p 2 $ "let " ++ show n ++ " = " ++ se 10 v ++
-                            " in " ++ se 10 sc 
+                            " in " ++ se 10 sc
     se p (PPi (Exp l s _) n ty sc)
         | n `elem` allNamesIn sc || impl
                                   = bracket p 2 $
-                                    (if l then "|(" else "(") ++ 
-                                    show n ++ " : " ++ se 10 ty ++ 
+                                    (if l then "|(" else "(") ++
+                                    show n ++ " : " ++ se 10 ty ++
                                     ") " ++ st ++
                                     "-> " ++ se 10 sc
         | otherwise = bracket p 2 $ se 0 ty ++ " " ++ st ++ "-> " ++ se 10 sc
@@ -1031,8 +1031,8 @@ showImp impl tm = se 10 tm where
                     Static -> "[static] "
                     _ -> ""
     se p (PPi (Imp l s _) n ty sc)
-        | impl = bracket p 2 $ (if l then "|{" else "{") ++ 
-                               show n ++ " : " ++ se 10 ty ++ 
+        | impl = bracket p 2 $ (if l then "|{" else "{") ++
+                               show n ++ " : " ++ se 10 ty ++
                                "} " ++ st ++ "-> " ++ se 10 sc
         | otherwise = se 10 sc
       where st = case s of
@@ -1048,17 +1048,17 @@ showImp impl tm = se 10 tm where
     se p (PApp _ (PRef _ f) [])
         | not impl = show f
     se p (PApp _ (PRef _ op@(UN (f:_))) args)
-        | length (getExps args) == 2 && not impl && not (isAlpha f) 
+        | length (getExps args) == 2 && not impl && not (isAlpha f)
             = let [l, r] = getExps args in
               bracket p 1 $ se 1 l ++ " " ++ show op ++ " " ++ se 0 r
-    se p (PApp _ f as) 
+    se p (PApp _ f as)
         = let args = getExps as in
               bracket p 1 $ se 1 f ++ if impl then concatMap sArg as
                                               else concatMap seArg args
     se p (PCase _ scr opts) = "case " ++ se 10 scr ++ " of " ++ showSep " | " (map sc opts)
        where sc (l, r) = se 10 l ++ " => " ++ se 10 r
     se p (PHidden tm) = "." ++ se 0 tm
-    se p (PRefl _ t) 
+    se p (PRefl _ t)
         | not impl = "refl"
         | otherwise = "refl {" ++ se 10 t ++ "}"
     se p (PResolveTC _) = "resolvetc"
@@ -1165,9 +1165,9 @@ getPArity _ = 0
 -- Return all names, free or globally bound, in the given term.
 
 allNamesIn :: PTerm -> [Name]
-allNamesIn tm = nub $ ni [] tm 
+allNamesIn tm = nub $ ni [] tm
   where
-    ni env (PRef _ n)        
+    ni env (PRef _ n)
         | not (n `elem` env) = [n]
     ni env (PApp _ f as)   = ni env f ++ concatMap (ni env) (map getTm as)
     ni env (PCase _ c os)  = ni env c ++ concatMap (ni env) (map snd os)
@@ -1186,10 +1186,10 @@ allNamesIn tm = nub $ ni [] tm
 -- Return names which are free in the given term.
 
 namesIn :: [(Name, PTerm)] -> IState -> PTerm -> [Name]
-namesIn uvars ist tm = nub $ ni [] tm 
+namesIn uvars ist tm = nub $ ni [] tm
   where
-    ni env (PRef _ n)        
-        | not (n `elem` env) 
+    ni env (PRef _ n)
+        | not (n `elem` env)
             = case lookupTy n (tt_ctxt ist) of
                 [] -> [n]
                 _ -> if n `elem` (map fst uvars) then [n] else []
@@ -1210,10 +1210,10 @@ namesIn uvars ist tm = nub $ ni [] tm
 -- Return which of the given names are used in the given term.
 
 usedNamesIn :: [Name] -> IState -> PTerm -> [Name]
-usedNamesIn vars ist tm = nub $ ni [] tm 
+usedNamesIn vars ist tm = nub $ ni [] tm
   where
-    ni env (PRef _ n)        
-        | n `elem` vars && not (n `elem` env) 
+    ni env (PRef _ n)
+        | n `elem` vars && not (n `elem` env)
             = case lookupTy n (tt_ctxt ist) of
                 [] -> [n]
                 _ -> []
