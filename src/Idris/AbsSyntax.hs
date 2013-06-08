@@ -12,6 +12,8 @@ import Idris.IdeSlave
 import IRTS.CodegenCommon
 import Util.DynamicLinker
 
+import Idris.Target.Triple
+
 import Paths_idris
 
 import System.Console.Haskeline
@@ -343,9 +345,19 @@ setTarget t = do i <- getIState
                  let opt' = opts { opt_target = t }
                  putIState $ i { idris_options = opt' }
 
+setTriple :: Triple -> Idris ()
+setTriple t = do i <- getIState
+                 let opts = idris_options i
+                 let opt' = opts { opt_triple = t }
+                 putIState $ i { idris_options = opt' }
+
 target :: Idris Target
 target = do i <- getIState
             return (opt_target (idris_options i))
+
+triple :: Idris Triple
+triple = do i <- getIState
+            return (opt_triple (idris_options i))
 
 setOutputTy :: OutputType -> Idris ()
 setOutputTy t = do i <- getIState

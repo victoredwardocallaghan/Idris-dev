@@ -20,6 +20,8 @@ import Idris.Help
 import Idris.Completion
 import Idris.IdeSlave
 
+import Idris.Target.Triple
+
 import Paths_idris
 import Util.System
 import Util.DynamicLinker
@@ -605,6 +607,7 @@ parseArgs ("-c":ns)              = OutputTy Object : (parseArgs ns)
 parseArgs ("--dumpdefuns":n:ns)  = DumpDefun n : (parseArgs ns)
 parseArgs ("--dumpcases":n:ns)   = DumpCases n : (parseArgs ns)
 parseArgs ("--target":n:ns)      = UseTarget (parseTarget n) : (parseArgs ns)
+parseArgs ("--triple":n:ns)      = UseTriple (buildTriple n) : (parseArgs ns)
 parseArgs ("-XTypeProviders":ns) = Extension TypeProviders : (parseArgs ns)
 parseArgs (n:ns)                 = Filename n : (parseArgs ns)
 
@@ -640,6 +643,9 @@ idrisMain opts =
        let tgt = case opt getTarget opts of
                    [] -> ViaC
                    xs -> last xs
+       let tri = case opt getTriple opts of
+                   [] -> tripleDefault
+                   xs -> last xs
        when (DefaultTotal `elem` opts) $ do i <- getIState
                                             putIState (i { default_total = True })
        mapM_ addLangExt (opt getLanguageExt opts)
@@ -650,6 +656,7 @@ idrisMain opts =
        setCmdLine opts
        setOutputTy outty
        setTarget tgt
+       setTriple tri
        when (Verbose `elem` opts) $ setVerbose True
        mapM_ makeOption opts
        -- if we have the --fovm flag, drop into the first order VM testing
@@ -740,6 +747,10 @@ getPkgClean _ = Nothing
 getTarget :: Opt -> Maybe Target
 getTarget (UseTarget x) = Just x
 getTarget _ = Nothing
+
+getTriple :: Opt -> Maybe Triple
+getTriple (UseTriple x) = Just x
+getTriple _ = Nothing
 
 getOutputTy :: Opt -> Maybe OutputType
 getOutputTy (OutputTy t) = Just t

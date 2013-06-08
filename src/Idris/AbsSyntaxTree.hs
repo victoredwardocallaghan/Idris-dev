@@ -12,6 +12,8 @@ import IRTS.CodegenCommon
 import Util.Pretty
 import Util.DynamicLinker
 
+import Idris.Target.Triple
+
 import Paths_idris
 
 import System.Console.Haskeline
@@ -34,6 +36,7 @@ data IOption = IOption { opt_logLevel   :: Int,
                          opt_verbose    :: Bool,
                          opt_quiet      :: Bool,
                          opt_target     :: Target,
+                         opt_triple     :: Triple,
                          opt_outputTy   :: OutputType,
                          opt_ibcsubdir  :: FilePath,
                          opt_importdirs :: [FilePath],
@@ -51,6 +54,7 @@ defaultOpts = IOption { opt_logLevel   = 0
                       , opt_verbose    = True
                       , opt_quiet      = False
                       , opt_target     = ViaC
+                      , opt_triple     = tripleDefault
                       , opt_outputTy   = Executable
                       , opt_ibcsubdir  = ""
                       , opt_importdirs = []
@@ -251,6 +255,7 @@ data Opt = Filename String
          | DumpCases String
          | FOVM String
          | UseTarget Target
+         | UseTriple Triple
          | OutputTy OutputType
          | Extension LanguageExt
     deriving (Show, Eq)
